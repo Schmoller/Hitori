@@ -10,6 +10,7 @@ public class Solver {
 	private final int rows;
 	private final int cols;
 	private final Set<IndexedNumber> duplicates;
+	private final Set<IndexedNumber> search;
 	
 	public Solver(Board board) {
 		rows = board.getRows();
@@ -26,7 +27,17 @@ public class Solver {
 		
 		// Split out the duplicate containing
 		duplicates = buildDuplicateSet();
-		System.out.println(duplicates);
+		search = new HashSet<>();
+		
+		// DeBUG
+		for (IndexedNumber dup : duplicates) {
+			dup.getNumber().setState(NumberState.Marked);
+			Set<IndexedNumber> neighbours = getNeighbours(dup);
+			if (!neighbours.isEmpty()) {
+				System.out.println("Neighbours of " + dup + ":");
+				System.out.println(neighbours);
+			}
+		}
 	}
 	
 	private Set<IndexedNumber> buildDuplicateSet() {
@@ -88,6 +99,36 @@ public class Solver {
 		}
 		
 		return duplicates;
+	}
+	
+	private Set<IndexedNumber> getNeighbours(IndexedNumber root) {
+		int row = root.getIndex() / cols;
+		int col = root.getIndex() % cols;
+		
+		Set<IndexedNumber> neighbours = new HashSet<>();
+		if (row > 0) {
+			neighbours.add(baseSet[col + (row - 1) * cols]);
+		}
+		
+		if (col > 0) {
+			neighbours.add(baseSet[(col - 1) + row * cols]);
+		}
+		
+		if (row < rows - 1) {
+			neighbours.add(baseSet[col + (row + 1) * cols]);
+		}
+		
+		if (cols < cols - 1) {
+			neighbours.add(baseSet[(col + 1) + row * cols]);
+		}
+		
+		// TODO: Just dont add it in the first place
+		neighbours.removeIf(n -> !duplicates.contains(n));
+		return neighbours;
+	}
+	
+	private void solve(IndexedNumber start) {
+		
 	}
 	
 	private static class IndexedNumber {

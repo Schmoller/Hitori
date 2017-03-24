@@ -1,5 +1,8 @@
 package schmoller.hitori.gui;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -16,6 +19,12 @@ public class Window {
 	private GridPane numberGrid;
 	
 	private Board board;
+	
+	private Map<BoardNumber, Label> labels;
+	
+	public Window() {
+		labels = new HashMap<>();
+	}
 	
 	@FXML
 	private void initialize() {
@@ -63,6 +72,7 @@ public class Window {
 				});
 				
 				numberGrid.add(label, col, row);
+				labels.put(num, label);
 			}
 		}
 	}
@@ -88,11 +98,22 @@ public class Window {
 		}
 	}
 	
+	private void updateAll() {
+		for (int col = 0; col < board.getCols(); ++col) {
+			for (int row = 0; row < board.getRows(); ++row) {
+				BoardNumber num = board.get(row, col);
+				Label label = labels.get(num);
+				updateNumber(num, label);
+			}
+		}
+	}
+	
 	
 	@FXML
 	private void handleSolve(ActionEvent event) {
 		System.out.println("Solve");
 		Solver solver = new Solver(board);
+		updateAll();
 	}
 	
 	@FXML
