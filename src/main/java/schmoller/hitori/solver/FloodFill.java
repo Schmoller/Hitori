@@ -14,6 +14,9 @@ public class FloodFill {
 	private final Board board;
 	private final Set<BoardNumber> unshaded;
 	
+	private Set<BoardNumber> targets;
+	private BoardNumber from;
+	
 	private Deque<BoardNumber> queue;
 	private Set<BoardNumber> visited;
 	
@@ -22,6 +25,13 @@ public class FloodFill {
 		
 		unshaded = new HashSet<>();
 		generateUnshadedSet();
+	}
+	
+	public FloodFill(Board board, BoardNumber from, Set<BoardNumber> targets) {
+		this(board);
+		
+		this.from = from;
+		this.targets = targets;
 	}
 	
 	private void generateUnshadedSet() {
@@ -35,12 +45,29 @@ public class FloodFill {
 		}
 	}
 	
+	/**
+	 * Performs a flood fill.
+	 * Depending on whether an origin and targets were provided or not
+	 * will change the result of this method.
+	 * @return
+	 * 		if the origin and targets are provided, the flood will start from one 
+	 * 		of them and return true only if all targets were visited
+	 * 		<p>
+	 * 		if the origin was not set, then this will return true if
+	 * 		all unshaded spaces are visited
+	 */
 	public boolean flood() {
 		queue = new ArrayDeque<>();
 		visited = new HashSet<>();
 		
 		// Just get one so we can start the fill
-		Iterator<BoardNumber> it = unshaded.iterator();
+		Iterator<BoardNumber> it;
+		if (from != null) {
+			it = targets.iterator();
+		} else {
+			it = unshaded.iterator();
+		}
+		
 		queue.add(it.next());
 		
 		// Visit all until we cant find any more
@@ -50,8 +77,12 @@ public class FloodFill {
 			addNeighbours(number);
 		}
 		
-		// If any remain in unshaded, we know that the board is discontinuous
-		return unshaded.isEmpty();
+		if (from != null) {
+			return targets.isEmpty();
+		} else {
+			// If any remain in unshaded, we know that the board is discontinuous
+			return unshaded.isEmpty();
+		}
 	}
 	
 	private void addNeighbours(BoardNumber number) {
@@ -88,7 +119,10 @@ public class FloodFill {
 	}
 	
 	private void pushNeighbour(BoardNumber number) {
-		if (visited.add(number)) {
+		if (number != from && visited.add(number)) {
+			if (targets != null) {
+				targets.remove(number);
+			}
 			queue.push(number);
 		}
 	}

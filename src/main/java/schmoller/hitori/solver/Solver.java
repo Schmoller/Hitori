@@ -10,6 +10,8 @@ import schmoller.hitori.Board.BoardNumber;
 import schmoller.hitori.NumberState;
 
 public class Solver {
+	private final Board board;
+	
 	private final BoardNumber[] baseSet;
 	private final int rows;
 	private final int cols;
@@ -17,6 +19,7 @@ public class Solver {
 	private final Deque<BoardNumber> search;
 	
 	public Solver(Board board) {
+		this.board = board;
 		rows = board.getRows();
 		cols = board.getCols();
 		
@@ -102,7 +105,7 @@ public class Solver {
 		return duplicates;
 	}
 	
-	private Set<BoardNumber> getNeighbours(BoardNumber root) {
+	private Set<BoardNumber> getNeighbours(BoardNumber root, boolean duplicatesOnly) {
 		int row = root.getIndex() / cols;
 		int col = root.getIndex() % cols;
 		
@@ -124,7 +127,9 @@ public class Solver {
 		}
 		
 		// TODO: Just dont add it in the first place
-		neighbours.removeIf(n -> !duplicates.contains(n));
+		if (duplicatesOnly) {
+			neighbours.removeIf(n -> !duplicates.contains(n));
+		}
 		return neighbours;
 	}
 	
@@ -137,7 +142,7 @@ public class Solver {
 					continue;
 				}
 				
-				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase);
+				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase, true);
 				
 				// Check for others of same value
 				for (int col2 = col + 1; col2 < cols; ++col2) {
@@ -148,7 +153,7 @@ public class Solver {
 					
 					if (duplicateBase.getValue() == duplicate.getValue()) {
 						// They are the same value, check for definite values
-						Set<BoardNumber> neighbours = getNeighbours(duplicate);
+						Set<BoardNumber> neighbours = getNeighbours(duplicate, true);
 						neighbours.retainAll(neighboursBase);
 						
 						// Any remaining must be there as one of these duplicate values must be shaded
@@ -169,7 +174,7 @@ public class Solver {
 					continue;
 				}
 				
-				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase);
+				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase, true);
 				
 				// Check for others of same value
 				for (int row2 = row + 1; row2 < rows; ++row2) {
@@ -180,7 +185,7 @@ public class Solver {
 					
 					if (duplicateBase.getValue() == duplicate.getValue()) {
 						// They are the same value, check for definite values
-						Set<BoardNumber> neighbours = getNeighbours(duplicate);
+						Set<BoardNumber> neighbours = getNeighbours(duplicate, true);
 						neighbours.retainAll(neighboursBase);
 						
 						// Any remaining must be there as one of these duplicate values must be shaded
@@ -194,12 +199,20 @@ public class Solver {
 	}
 	
 	public void step() {
-		if (search.isEmpty()) {
-			// TODO: Lookahead based searching
-			System.out.println("Out of moves");
-		} else {
+		if (!search.isEmpty()) {
 			// Solve this one
 			solve(search.pop());
+		} else {
+			// Check for those that would make the board discontinuous
+			for (BoardNumber number : duplicates) {
+				if (doesBreakContinuity(number)) {
+					solve(number);
+					return;
+				}
+			}
+			
+			// TODO: Lookahead based searching
+			System.out.println("Out of moves");
 		}
 	}
 	
@@ -236,12 +249,24 @@ public class Solver {
 		}
 	}
 	
+	private boolean doesBreakContinuity(BoardNumber number) {
+		System.out.println("Testing continuity " + number);
+		FloodFill fill = new FloodFill(board, number, getNeighbours(number, false));
+		if (fill.flood()) {
+			System.out.println(number + " is ok");
+			return false;
+		} else {
+			System.out.println(number + " breaks continuity");
+			return true;
+		}
+	}
+	
 	private void shade(BoardNumber number) {
 		number.setState(NumberState.Shaded);
 		duplicates.remove(number);
 		System.out.println("Shading " + number + " and removing from duplicates");
 		
-		Set<BoardNumber> neighbours = getNeighbours(number);
+		Set<BoardNumber> neighbours = getNeighbours(number, true);
 		for (BoardNumber neighbour : neighbours) {
 			if (!search.contains(neighbour)) {
 				search.push(neighbour);

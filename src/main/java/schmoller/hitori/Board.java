@@ -130,7 +130,7 @@ public class Board {
 		}
 		
 		public String toString() {
-			return String.valueOf(value);
+			return value + "@" + index;
 		}
 	}
 	
