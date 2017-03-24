@@ -17,6 +17,8 @@ import schmoller.hitori.NumberState;
 public class Window {
 	@FXML
 	private GridPane numberGrid;
+	@FXML
+	private Label solvedOutput;
 	
 	private Board board;
 	private Solver solver;
@@ -70,6 +72,12 @@ public class Window {
 					}
 					
 					updateNumber(num, label);
+					
+					if (board.isSolved()) {
+						solvedOutput.setText("YES!");
+					} else {
+						solvedOutput.setText("No");
+					}
 				});
 				
 				numberGrid.add(label, col, row);
@@ -106,6 +114,12 @@ public class Window {
 				Label label = labels.get(num);
 				updateNumber(num, label);
 			}
+		}
+		
+		if (board.isSolved()) {
+			solvedOutput.setText("YES!");
+		} else {
+			solvedOutput.setText("No");
 		}
 	}
 	
