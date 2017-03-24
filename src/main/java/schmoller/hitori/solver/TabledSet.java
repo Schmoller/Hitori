@@ -6,9 +6,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class TabledSet implements Set<IndexedNumber> {
-	private final Set<IndexedNumber> backingSet;
-	private final IndexedNumber[] data;
+import schmoller.hitori.Board.BoardNumber;
+
+public class TabledSet implements Set<BoardNumber> {
+	private final Set<BoardNumber> backingSet;
+	private final BoardNumber[] data;
 	
 	private final int rows;
 	private final int cols;
@@ -17,7 +19,7 @@ public class TabledSet implements Set<IndexedNumber> {
 		this.rows = rows;
 		this.cols = cols;
 		
-		data = new IndexedNumber[rows * cols];
+		data = new BoardNumber[rows * cols];
 		backingSet = new HashSet<>();
 	}
 	
@@ -39,7 +41,7 @@ public class TabledSet implements Set<IndexedNumber> {
 		return backingSet.isEmpty();
 	}
 	
-	public IndexedNumber get(int row, int col) {
+	public BoardNumber get(int row, int col) {
 		return data[col + row * cols];
 	}
 	
@@ -49,7 +51,7 @@ public class TabledSet implements Set<IndexedNumber> {
 	}
 
 	@Override
-	public Iterator<IndexedNumber> iterator() {
+	public Iterator<BoardNumber> iterator() {
 		return backingSet.iterator();
 	}
 
@@ -64,7 +66,7 @@ public class TabledSet implements Set<IndexedNumber> {
 	}
 
 	@Override
-	public boolean add(IndexedNumber e) {
+	public boolean add(BoardNumber e) {
 		if (backingSet.add(e)) {
 			data[e.getIndex()] = e;
 			return true;
@@ -76,7 +78,7 @@ public class TabledSet implements Set<IndexedNumber> {
 	@Override
 	public boolean remove(Object o) {
 		if (backingSet.remove(o)) {
-			data[((IndexedNumber)o).getIndex()] = null;
+			data[((BoardNumber)o).getIndex()] = null;
 			return true;
 		} else {
 			return false;
@@ -89,9 +91,9 @@ public class TabledSet implements Set<IndexedNumber> {
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends IndexedNumber> c) {
+	public boolean addAll(Collection<? extends BoardNumber> c) {
 		boolean success = false;
-		for (IndexedNumber n : c) {
+		for (BoardNumber n : c) {
 			if (add(n)) {
 				success = true;
 			}

@@ -6,25 +6,26 @@ import java.util.HashSet;
 import java.util.Set;
 
 import schmoller.hitori.Board;
+import schmoller.hitori.Board.BoardNumber;
 import schmoller.hitori.NumberState;
 
 public class Solver {
-	private final IndexedNumber[] baseSet;
+	private final BoardNumber[] baseSet;
 	private final int rows;
 	private final int cols;
 	private final TabledSet duplicates;
-	private final Deque<IndexedNumber> search;
+	private final Deque<BoardNumber> search;
 	
 	public Solver(Board board) {
 		rows = board.getRows();
 		cols = board.getCols();
 		
 		// Convert the numbers to something we can work with
-		baseSet = new IndexedNumber[rows * cols];
+		baseSet = new BoardNumber[rows * cols];
 		for (int r = 0; r < rows; ++r) {
 			for (int c = 0; c < cols; ++c) {
 				int index = c + r * cols;
-				baseSet[index] = new IndexedNumber(board.get(r, c), index);
+				baseSet[index] = board.get(r, c);
 			}
 		}
 		
@@ -35,8 +36,8 @@ public class Solver {
 		generateInitialSearchSet();
 		
 		// DeBUG
-		for (IndexedNumber dup : search) {
-			dup.getNumber().setState(NumberState.Marked);
+		for (BoardNumber dup : search) {
+			dup.setState(NumberState.Marked);
 		}
 	}
 	
@@ -48,7 +49,7 @@ public class Solver {
 			
 			// Check this column
 			for (int c = 0; c < cols; ++c) {
-				IndexedNumber compareBase = baseSet[c + r * cols];
+				BoardNumber compareBase = baseSet[c + r * cols];
 				
 				// Look at the rest of the row
 				for (int c2 = c + 1; c2 < cols; ++c2) {
@@ -57,9 +58,9 @@ public class Solver {
 						continue;
 					}
 					
-					IndexedNumber number = baseSet[c2 + r * cols];
+					BoardNumber number = baseSet[c2 + r * cols];
 					// Check for duplicate
-					if (number.getNumber().getValue() == compareBase.getNumber().getValue()) {
+					if (number.getValue() == compareBase.getValue()) {
 						// Its a duplicate
 						// Mark visited
 						map |= 1 << c2;
@@ -76,7 +77,7 @@ public class Solver {
 			
 			// Check this row
 			for (int r = 0; r < rows; ++r) {
-				IndexedNumber compareBase = baseSet[c + r * cols];
+				BoardNumber compareBase = baseSet[c + r * cols];
 				
 				// Look at the rest of the row
 				for (int r2 = r + 1; r2 < rows; ++r2) {
@@ -85,9 +86,9 @@ public class Solver {
 						continue;
 					}
 					
-					IndexedNumber number = baseSet[c + r2 * cols];
+					BoardNumber number = baseSet[c + r2 * cols];
 					// Check for duplicate
-					if (number.getNumber().getValue() == compareBase.getNumber().getValue()) {
+					if (number.getValue() == compareBase.getValue()) {
 						// Its a duplicate
 						// Mark visited
 						map |= 1 << r2;
@@ -101,11 +102,11 @@ public class Solver {
 		return duplicates;
 	}
 	
-	private Set<IndexedNumber> getNeighbours(IndexedNumber root) {
+	private Set<BoardNumber> getNeighbours(BoardNumber root) {
 		int row = root.getIndex() / cols;
 		int col = root.getIndex() % cols;
 		
-		Set<IndexedNumber> neighbours = new HashSet<>();
+		Set<BoardNumber> neighbours = new HashSet<>();
 		if (row > 0) {
 			neighbours.add(baseSet[col + (row - 1) * cols]);
 		}
@@ -131,23 +132,23 @@ public class Solver {
 		// Check each row
 		for (int row = 0; row < rows; ++row) {
 			for (int col = 0; col < cols; ++col) {
-				IndexedNumber duplicateBase = duplicates.get(row, col);
+				BoardNumber duplicateBase = duplicates.get(row, col);
 				if (duplicateBase == null) {
 					continue;
 				}
 				
-				Set<IndexedNumber> neighboursBase = getNeighbours(duplicateBase);
+				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase);
 				
 				// Check for others of same value
 				for (int col2 = col + 1; col2 < cols; ++col2) {
-					IndexedNumber duplicate = duplicates.get(row, col2);
+					BoardNumber duplicate = duplicates.get(row, col2);
 					if (duplicate == null) {
 						continue;
 					}
 					
-					if (duplicateBase.getNumber().getValue() == duplicate.getNumber().getValue()) {
+					if (duplicateBase.getValue() == duplicate.getValue()) {
 						// They are the same value, check for definite values
-						Set<IndexedNumber> neighbours = getNeighbours(duplicate);
+						Set<BoardNumber> neighbours = getNeighbours(duplicate);
 						neighbours.retainAll(neighboursBase);
 						
 						// Any remaining must be there as one of these duplicate values must be shaded
@@ -163,23 +164,23 @@ public class Solver {
 		// Check each col
 		for (int col = 0; col < cols; ++col) {
 			for (int row = 0; row < rows; ++row) {
-				IndexedNumber duplicateBase = duplicates.get(row, col);
+				BoardNumber duplicateBase = duplicates.get(row, col);
 				if (duplicateBase == null) {
 					continue;
 				}
 				
-				Set<IndexedNumber> neighboursBase = getNeighbours(duplicateBase);
+				Set<BoardNumber> neighboursBase = getNeighbours(duplicateBase);
 				
 				// Check for others of same value
 				for (int row2 = row + 1; row2 < rows; ++row2) {
-					IndexedNumber duplicate = duplicates.get(row2, col);
+					BoardNumber duplicate = duplicates.get(row2, col);
 					if (duplicate == null) {
 						continue;
 					}
 					
-					if (duplicateBase.getNumber().getValue() == duplicate.getNumber().getValue()) {
+					if (duplicateBase.getValue() == duplicate.getValue()) {
 						// They are the same value, check for definite values
-						Set<IndexedNumber> neighbours = getNeighbours(duplicate);
+						Set<BoardNumber> neighbours = getNeighbours(duplicate);
 						neighbours.retainAll(neighboursBase);
 						
 						// Any remaining must be there as one of these duplicate values must be shaded
@@ -202,7 +203,7 @@ public class Solver {
 		}
 	}
 	
-	private void solve(IndexedNumber root) {
+	private void solve(BoardNumber root) {
 		// Find the same numbers in the same row and column and mark them as shaded
 		int row = root.getIndex() / cols;
 		int col = root.getIndex() % cols;
@@ -212,36 +213,36 @@ public class Solver {
 		
 		// Check row
 		for (int i = 0; i < cols; ++i) {
-			IndexedNumber other = duplicates.get(row, i);
+			BoardNumber other = duplicates.get(row, i);
 			if (other == null || other == root) {
 				continue;
 			}
 			
-			if (root.getNumber().getValue() == other.getNumber().getValue()) {
+			if (root.getValue() == other.getValue()) {
 				shade(other);
 			}
 		}
 		
 		// Check column
 		for (int i = 0; i < rows; ++i) {
-			IndexedNumber other = duplicates.get(i, col);
+			BoardNumber other = duplicates.get(i, col);
 			if (other == null || other == root) {
 				continue;
 			}
 			
-			if (root.getNumber().getValue() == other.getNumber().getValue()) {
+			if (root.getValue() == other.getValue()) {
 				shade(other);
 			}
 		}
 	}
 	
-	private void shade(IndexedNumber number) {
-		number.getNumber().setState(NumberState.Shaded);
+	private void shade(BoardNumber number) {
+		number.setState(NumberState.Shaded);
 		duplicates.remove(number);
 		System.out.println("Shading " + number + " and removing from duplicates");
 		
-		Set<IndexedNumber> neighbours = getNeighbours(number);
-		for (IndexedNumber neighbour : neighbours) {
+		Set<BoardNumber> neighbours = getNeighbours(number);
+		for (BoardNumber neighbour : neighbours) {
 			if (!search.contains(neighbour)) {
 				search.push(neighbour);
 				System.out.println("Added " + neighbour + " to queue: " + search);
