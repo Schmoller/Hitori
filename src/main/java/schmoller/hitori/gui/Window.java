@@ -11,8 +11,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
+import schmoller.hitori.solver.Solver;
 import schmoller.hitori.NumberState;
-import schmoller.hitori.Solver;
 
 public class Window {
 	@FXML

@@ -1,16 +1,17 @@
-package schmoller.hitori;
+package schmoller.hitori.solver;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import schmoller.hitori.Board.BoardNumber;
+import schmoller.hitori.Board;
+import schmoller.hitori.NumberState;
 
 public class Solver {
 	private final IndexedNumber[] baseSet;
 	private final int rows;
 	private final int cols;
-	private final Set<IndexedNumber> duplicates;
-	private final Set<IndexedNumber> search;
+	private final TabledSet duplicates;
+	private final TabledSet search;
 	
 	public Solver(Board board) {
 		rows = board.getRows();
@@ -27,7 +28,7 @@ public class Solver {
 		
 		// Split out the duplicate containing
 		duplicates = buildDuplicateSet();
-		search = new HashSet<>();
+		search = new TabledSet(rows, cols);
 		
 		generateInitialSearchSet();
 		
@@ -37,8 +38,8 @@ public class Solver {
 		}
 	}
 	
-	private Set<IndexedNumber> buildDuplicateSet() {
-		Set<IndexedNumber> duplicates = new HashSet<>(baseSet.length);
+	private TabledSet buildDuplicateSet() {
+		TabledSet duplicates = new TabledSet(rows, cols);
 		// Check each row
 		for (int r = 0; r < rows; ++r) {
 			long map = 0;
@@ -125,16 +126,10 @@ public class Solver {
 	}
 	
 	private void generateInitialSearchSet() {
-		IndexedNumber[] duplicateArray = new IndexedNumber[baseSet.length];
-		
-		for (IndexedNumber duplicate : duplicates) {
-			duplicateArray[duplicate.getIndex()] = duplicate;
-		}
-		
 		// Check each row
 		for (int row = 0; row < rows; ++row) {
 			for (int col = 0; col < cols; ++col) {
-				IndexedNumber duplicateBase = duplicateArray[col + row * cols];
+				IndexedNumber duplicateBase = duplicates.get(row, col);
 				if (duplicateBase == null) {
 					continue;
 				}
@@ -143,7 +138,7 @@ public class Solver {
 				
 				// Check for others of same value
 				for (int col2 = col + 1; col2 < cols; ++col2) {
-					IndexedNumber duplicate = duplicateArray[col2 + row * cols];
+					IndexedNumber duplicate = duplicates.get(row, col2);
 					if (duplicate == null) {
 						continue;
 					}
@@ -166,7 +161,7 @@ public class Solver {
 		// Check each col
 		for (int col = 0; col < cols; ++col) {
 			for (int row = 0; row < rows; ++row) {
-				IndexedNumber duplicateBase = duplicateArray[col + row * cols];
+				IndexedNumber duplicateBase = duplicates.get(row, col);
 				if (duplicateBase == null) {
 					continue;
 				}
@@ -175,7 +170,7 @@ public class Solver {
 				
 				// Check for others of same value
 				for (int row2 = row + 1; row2 < rows; ++row2) {
-					IndexedNumber duplicate = duplicateArray[col + row2 * cols];
+					IndexedNumber duplicate = duplicates.get(row2, col);
 					if (duplicate == null) {
 						continue;
 					}
@@ -197,28 +192,5 @@ public class Solver {
 	
 	private void solve(IndexedNumber start) {
 		
-	}
-	
-	private static class IndexedNumber {
-		private final BoardNumber number;
-		private final int index;
-		
-		public IndexedNumber(BoardNumber number, int index) {
-			this.number = number;
-			this.index = index;
-		}
-		
-		public BoardNumber getNumber() {
-			return number;
-		}
-		
-		public int getIndex() {
-			return index;
-		}
-
-		@Override
-		public String toString() {
-			return "[" + number + "@" + index + "]";
-		}
 	}
 }
