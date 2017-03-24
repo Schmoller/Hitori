@@ -17,6 +17,7 @@ public class MainApplication extends Application {
 		Parent window = loader.load();
 		
 		Scene scene = new Scene(window);
+		scene.getStylesheets().add("Main.css");
 		primaryStage.setScene(scene);
 		
 		primaryStage.show();

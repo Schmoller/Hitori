@@ -1,0 +1,23 @@
+@CHARSET "UTF-8";
+
+.numberGrid {
+	
+}
+
+.number {
+	-fx-font-size: 20;
+	-fx-border-color: black;
+}
+
+.number.normal {
+	
+}
+
+.number.shaded {
+	-fx-background-color: #000;
+	-fx-text-fill: #FFF;
+}
+
+.number.marked {
+	-fx-background-color: #FF8;
+}

@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="423.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="schmoller.hitori.gui.Window">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="423.0" stylesheets="@Main.css" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="schmoller.hitori.gui.Window">
    <children>
       <GridPane fx:id="numberGrid" layoutX="107.0" layoutY="14.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;">
         <columnConstraints>
