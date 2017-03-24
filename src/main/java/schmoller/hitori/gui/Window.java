@@ -19,6 +19,7 @@ public class Window {
 	private GridPane numberGrid;
 	
 	private Board board;
+	private Solver solver;
 	
 	private Map<BoardNumber, Label> labels;
 	
@@ -111,8 +112,12 @@ public class Window {
 	
 	@FXML
 	private void handleSolve(ActionEvent event) {
-		System.out.println("Solve");
-		Solver solver = new Solver(board);
+		if (solver == null) {
+			solver = new Solver(board);
+		} else {
+			solver.step();
+		}
+		
 		updateAll();
 	}
 	

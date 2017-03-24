@@ -1,5 +1,7 @@
 package schmoller.hitori.solver;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,7 +13,7 @@ public class Solver {
 	private final int rows;
 	private final int cols;
 	private final TabledSet duplicates;
-	private final TabledSet search;
+	private final Deque<IndexedNumber> search;
 	
 	public Solver(Board board) {
 		rows = board.getRows();
@@ -28,7 +30,7 @@ public class Solver {
 		
 		// Split out the duplicate containing
 		duplicates = buildDuplicateSet();
-		search = new TabledSet(rows, cols);
+		search = new ArrayDeque<>(rows * cols);
 		
 		generateInitialSearchSet();
 		
@@ -190,7 +192,60 @@ public class Solver {
 		}
 	}
 	
-	private void solve(IndexedNumber start) {
+	public void step() {
+		if (search.isEmpty()) {
+			// TODO: Lookahead based searching
+			System.out.println("Out of moves");
+		} else {
+			// Solve this one
+			solve(search.pop());
+		}
+	}
+	
+	private void solve(IndexedNumber root) {
+		// Find the same numbers in the same row and column and mark them as shaded
+		int row = root.getIndex() / cols;
+		int col = root.getIndex() % cols;
 		
+		System.out.println("Removing " + root + " from duplicates");
+		duplicates.remove(root);
+		
+		// Check row
+		for (int i = 0; i < cols; ++i) {
+			IndexedNumber other = duplicates.get(row, i);
+			if (other == null || other == root) {
+				continue;
+			}
+			
+			if (root.getNumber().getValue() == other.getNumber().getValue()) {
+				shade(other);
+			}
+		}
+		
+		// Check column
+		for (int i = 0; i < rows; ++i) {
+			IndexedNumber other = duplicates.get(i, col);
+			if (other == null || other == root) {
+				continue;
+			}
+			
+			if (root.getNumber().getValue() == other.getNumber().getValue()) {
+				shade(other);
+			}
+		}
+	}
+	
+	private void shade(IndexedNumber number) {
+		number.getNumber().setState(NumberState.Shaded);
+		duplicates.remove(number);
+		System.out.println("Shading " + number + " and removing from duplicates");
+		
+		Set<IndexedNumber> neighbours = getNeighbours(number);
+		for (IndexedNumber neighbour : neighbours) {
+			if (!search.contains(neighbour)) {
+				search.push(neighbour);
+				System.out.println("Added " + neighbour + " to queue: " + search);
+			}
+		}
 	}
 }
