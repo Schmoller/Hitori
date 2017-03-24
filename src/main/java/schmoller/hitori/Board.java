@@ -51,6 +51,10 @@ public class Board {
 		public void setState(NumberState state) {
 			this.state = state;
 		}
+		
+		public String toString() {
+			return String.valueOf(value);
+		}
 	}
 	
 	public static Board from(int width, int height, int... numbers) {

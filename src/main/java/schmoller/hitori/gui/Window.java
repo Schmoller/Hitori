@@ -9,6 +9,7 @@ import javafx.scene.layout.GridPane;
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
 import schmoller.hitori.NumberState;
+import schmoller.hitori.Solver;
 
 public class Window {
 	@FXML
@@ -91,6 +92,7 @@ public class Window {
 	@FXML
 	private void handleSolve(ActionEvent event) {
 		System.out.println("Solve");
+		Solver solver = new Solver(board);
 	}
 	
 	@FXML
