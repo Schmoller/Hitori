@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import schmoller.hitori.Board;
-import schmoller.hitori.NumberState;
 import schmoller.hitori.Board.BoardNumber;
 
 public class FloodFill {
@@ -38,7 +37,7 @@ public class FloodFill {
 		for (int row = 0; row < board.getRows(); ++row) {
 			for (int col = 0; col < board.getCols(); ++col) {
 				BoardNumber number = board.get(row, col);
-				if (number.getState() != NumberState.Shaded) {
+				if (number.getState().isClear()) {
 					unshaded.add(number);
 				}
 			}
@@ -91,28 +90,28 @@ public class FloodFill {
 		
 		if (row > 0) {
 			BoardNumber next = board.get(row-1, col);
-			if (next.getState() != NumberState.Shaded) {
+			if (next.getState().isClear()) {
 				pushNeighbour(next);
 			}
 		}
 		
 		if (col > 0) {
 			BoardNumber next = board.get(row, col-1);
-			if (next.getState() != NumberState.Shaded) {
+			if (next.getState().isClear()) {
 				pushNeighbour(next);
 			}
 		}
 		
 		if (row < board.getRows() - 1) {
 			BoardNumber next = board.get(row+1, col);
-			if (next.getState() != NumberState.Shaded) {
+			if (next.getState().isClear()) {
 				pushNeighbour(next);
 			}
 		}
 		
 		if (col < board.getCols() - 1) {
 			BoardNumber next = board.get(row, col+1);
-			if (next.getState() != NumberState.Shaded) {
+			if (next.getState().isClear()) {
 				pushNeighbour(next);
 			}
 		}

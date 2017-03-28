@@ -98,10 +98,16 @@ public class Window {
 					
 					updateNumber(num, label);
 					
-					if (board.isSolved()) {
+					switch (board.getBoardState()) {
+					case Complete:
 						solvedOutput.setText("YES!");
-					} else {
+						break;
+					case Incomplete:
 						solvedOutput.setText("No");
+						break;
+					case Invalid:
+						solvedOutput.setText("Invalid");
+						break;
 					}
 				});
 				
@@ -112,24 +118,7 @@ public class Window {
 	}
 	
 	private void updateNumber(BoardNumber number, Label label) {
-		switch (number.getState()) {
-		case Marked:
-			label.getStyleClass().remove("normal");
-			label.getStyleClass().add("marked");
-			label.getStyleClass().remove("shaded");
-			break;
-		default:
-		case Normal:
-			label.getStyleClass().add("normal");
-			label.getStyleClass().remove("marked");
-			label.getStyleClass().remove("shaded");
-			break;
-		case Shaded:
-			label.getStyleClass().remove("normal");
-			label.getStyleClass().remove("marked");
-			label.getStyleClass().add("shaded");
-			break;
-		}
+		label.getStyleClass().setAll("number", number.getState().name().toLowerCase());
 	}
 	
 	private void updateAll() {
@@ -141,10 +130,16 @@ public class Window {
 			}
 		}
 		
-		if (board.isSolved()) {
+		switch (board.getBoardState()) {
+		case Complete:
 			solvedOutput.setText("YES!");
-		} else {
+			break;
+		case Incomplete:
 			solvedOutput.setText("No");
+			break;
+		case Invalid:
+			solvedOutput.setText("Invalid");
+			break;
 		}
 	}
 	

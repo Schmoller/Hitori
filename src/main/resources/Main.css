@@ -21,3 +21,12 @@
 .number.marked {
 	-fx-background-color: #FF8;
 }
+
+.number.lashaded {
+	-fx-background-color: #F88;
+}
+
+.number.lamarked {
+	-fx-border-color: #F88;
+	-fx-background-color: #888;
+}

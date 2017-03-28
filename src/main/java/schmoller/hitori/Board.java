@@ -29,11 +29,12 @@ public class Board {
 		return board[col + row * width];
 	}
 	
-	public boolean isSolved() {
+	public BoardState getBoardState() {
 		// 1. No more than 1 of each number in each row
 		// 2. No adjacent shaded areas
 		// 3. Unshaded areas must be continuous
 		
+		boolean isIncomplete = false;
 		// Check rule 1 and 2 for rows
 		for (int row = 0; row < height; ++row) {
 			long mask = 0;
@@ -41,20 +42,18 @@ public class Board {
 			
 			for (int col = 0; col < width; ++col) {
 				int value = board[col + row * width].getValue();
-				boolean isShaded = board[col + row * width].getState() == NumberState.Shaded;
+				boolean isShaded = !board[col + row * width].getState().isClear();
 				
 				if (!isShaded) {
 					// Check for no duplicate values
 					if ((mask & (1 << value)) != 0) {
 						// Error:
-						System.out.println("ERROR: Duplicate found row " + row + " col " + col + ": " + value);
-						return false;
+						isIncomplete = true;
 					} else {
 						mask |= (1 << value);
 					}
 				} else if (lastShaded) {
-					System.out.println("ERROR: 2 Shaded segments touch at " + row + "," + col);
-					return false;
+					return BoardState.Invalid;
 				}
 				
 				lastShaded = isShaded;
@@ -68,20 +67,18 @@ public class Board {
 			
 			for (int row = 0; row < height; ++row) {
 				int value = board[col + row * width].getValue();
-				boolean isShaded = board[col + row * width].getState() == NumberState.Shaded;
+				boolean isShaded = !board[col + row * width].getState().isClear();
 				
 				if (!isShaded) {
 					// Check for no duplicate values
 					if ((mask & (1 << value)) != 0) {
 						// Error:
-						System.out.println("ERROR: Duplicate found row " + row + " col " + col + ": " + value);
-						return false;
+						isIncomplete = true;
 					} else {
 						mask |= (1 << value);
 					}
 				} else if (lastShaded) {
-					System.out.println("ERROR: 2 Shaded segments touch at " + row + "," + col);
-					return false;
+					return BoardState.Invalid;
 				}
 				
 				lastShaded = isShaded;
@@ -91,11 +88,14 @@ public class Board {
 		// Check for rule 3
 		FloodFill fill = new FloodFill(this);
 		if (!fill.flood()) {
-			System.out.println("Board is discontinuous");
-			return false;
+			return BoardState.Invalid;
 		}
 		
-		return true;
+		if (isIncomplete) {
+			return BoardState.Incomplete;
+		}
+		
+		return BoardState.Complete;
 	}
 	
 	public static class BoardNumber {
@@ -141,5 +141,11 @@ public class Board {
 		}
 		
 		return new Board(width, height, data);
+	}
+	
+	public enum BoardState {
+		Incomplete,
+		Complete,
+		Invalid
 	}
 }

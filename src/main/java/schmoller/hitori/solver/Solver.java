@@ -7,6 +7,7 @@ import java.util.Set;
 
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
+import schmoller.hitori.Board.BoardState;
 import schmoller.hitori.NumberState;
 
 public class Solver {
@@ -18,10 +19,20 @@ public class Solver {
 	private final TabledSet duplicates;
 	private final Deque<BoardNumber> search;
 	
+	// Advanced solving 
+	private boolean isLookingAhead;
+	private BoardNumber lookAheadStart;
+	private final Set<BoardNumber> unsure; // Numbers where it did a forward search but got an inconclusive result (board not complete and not conflics)
+	private final Set<BoardNumber> changed; // The numbers that have been changed in this lookahead
+	
 	public Solver(Board board) {
 		this.board = board;
 		rows = board.getRows();
 		cols = board.getCols();
+		
+		unsure = new HashSet<>();
+		changed = new HashSet<>();
+		isLookingAhead = false;
 		
 		// Convert the numbers to something we can work with
 		baseSet = new BoardNumber[rows * cols];
@@ -37,11 +48,6 @@ public class Solver {
 		search = new ArrayDeque<>(rows * cols);
 		
 		generateInitialSearchSet();
-		
-		// DeBUG
-		for (BoardNumber dup : search) {
-			dup.setState(NumberState.Marked);
-		}
 	}
 	
 	private TabledSet buildDuplicateSet() {
@@ -199,21 +205,94 @@ public class Solver {
 	}
 	
 	public void step() {
+		if (board.getBoardState() == BoardState.Complete) {
+			// Done
+			System.out.println("Board is done");
+			return;
+		}
+		
 		if (!search.isEmpty()) {
 			// Solve this one
 			solve(search.pop());
 		} else {
 			// Check for those that would make the board discontinuous
+			boolean found = false;
 			for (BoardNumber number : duplicates) {
 				if (doesBreakContinuity(number)) {
 					solve(number);
-					return;
+					found = true;
+					break;
 				}
 			}
 			
-			// TODO: Lookahead based searching
-			System.out.println("Out of moves");
+			if (!found) {
+				if (isLookingAhead) {
+					// We ran out of things to check, but the board isnt complete
+					// Mark this as unsure and move on
+					restore();
+					unsure.add(lookAheadStart);
+				}
+				
+				System.out.println("Looking ahead");
+				
+				// Engage Lookahead mode
+				isLookingAhead = true;
+				// Pick a start point 
+				lookAheadStart = getNextLookaheadSource();
+				// Solve for it
+				search.push(lookAheadStart);
+				lookAheadStart.setState(NumberState.LAMarked);
+				changed.add(lookAheadStart);
+				duplicates.remove(lookAheadStart);
+			}
 		}
+		
+		// Check for conflicts
+		if (isLookingAhead) {
+			switch (board.getBoardState()) {
+			case Invalid:
+				System.out.println("Conflict found in lookahead, shading number");
+				// Ok so its not valid, restore the board and shade it
+				restore();
+				isLookingAhead = false;
+				shade(lookAheadStart);
+				break;
+			case Complete:
+				System.out.println("Solving complete");
+				// Did it
+				restore();
+				isLookingAhead = false;
+				solve(lookAheadStart);
+				break;
+			}
+		}
+	}
+	
+	private void restore() {
+		for (BoardNumber number : changed) {
+			duplicates.add(number);
+			number.setState(NumberState.Normal);
+		}
+		
+		changed.clear();
+		search.clear();
+	}
+	
+	private BoardNumber getNextLookaheadSource() {
+		assert(duplicates.size() > 0): "Ran out of duplicates but still calling this";
+		for (BoardNumber duplicate : duplicates) {
+			// Do not look at ones we have looked at before with no results
+			if (unsure.contains(duplicate)) {
+				continue;
+			}
+			
+			return duplicate;
+		}
+		
+		// We have exhausted all duplicates
+		// Erase the unsure as we must have found something by now
+		unsure.clear();
+		return getNextLookaheadSource();
 	}
 	
 	private void solve(BoardNumber root) {
@@ -223,6 +302,9 @@ public class Solver {
 		
 		System.out.println("Removing " + root + " from duplicates");
 		duplicates.remove(root);
+		if (isLookingAhead) {
+			changed.add(root);
+		}
 		
 		// Check row
 		for (int i = 0; i < cols; ++i) {
@@ -262,7 +344,12 @@ public class Solver {
 	}
 	
 	private void shade(BoardNumber number) {
-		number.setState(NumberState.Shaded);
+		if (isLookingAhead) {
+			changed.add(number);
+			number.setState(NumberState.LAShaded);
+		} else {
+			number.setState(NumberState.Shaded);
+		}
 		duplicates.remove(number);
 		System.out.println("Shading " + number + " and removing from duplicates");
 		
