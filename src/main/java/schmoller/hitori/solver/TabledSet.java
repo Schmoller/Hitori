@@ -1,9 +1,11 @@
 package schmoller.hitori.solver;
 
+import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import schmoller.hitori.Board.BoardNumber;
@@ -44,6 +46,40 @@ public class TabledSet implements Set<BoardNumber> {
 	public BoardNumber get(int row, int col) {
 		return data[col + row * cols];
 	}
+    
+    public List<BoardNumber> getRow(int row) {
+        return new AbstractList<BoardNumber>() {
+            @Override
+            public BoardNumber get(int index) {
+                if (index < 0 || index >= cols) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return data[index + row * cols];
+            }
+
+            @Override
+            public int size() {
+                return cols;
+            }
+        };
+    }
+
+    public List<BoardNumber> getCol(int col) {
+        return new AbstractList<BoardNumber>() {
+            @Override
+            public BoardNumber get(int index) {
+                if (index < 0 || index >= rows) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return data[col + index * cols];
+            }
+
+            @Override
+            public int size() {
+                return rows;
+            }
+        };
+    }
 	
 	@Override
 	public boolean contains(Object o) {

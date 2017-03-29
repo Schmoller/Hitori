@@ -1,5 +1,7 @@
 package schmoller.hitori;
 
+import java.util.AbstractList;
+import java.util.List;
 import schmoller.hitori.solver.FloodFill;
 
 public class Board {
@@ -24,10 +26,52 @@ public class Board {
 	public int getRows() {
 		return height;
 	}
+    
+    public int getRow(BoardNumber number) {
+        return number.getIndex() / width;
+    }
+    
+    public int getCol(BoardNumber number) {
+        return number.getIndex() % width;
+    }
 	
 	public BoardNumber get(int row, int col) {
 		return board[col + row * width];
 	}
+        
+    public List<BoardNumber> getRow(int row) {
+        return new AbstractList<BoardNumber>() {
+            @Override
+            public BoardNumber get(int index) {
+                if (index < 0 || index >= width) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return board[index + row * width];
+            }
+
+            @Override
+            public int size() {
+                return width;
+            }
+        };
+    }
+
+    public List<BoardNumber> getCol(int col) {
+        return new AbstractList<BoardNumber>() {
+            @Override
+            public BoardNumber get(int index) {
+                if (index < 0 || index >= height) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return board[col + index * width];
+            }
+
+            @Override
+            public int size() {
+                return height;
+            }
+        };
+    }
 	
 	public BoardState getBoardState() {
 		// 1. No more than 1 of each number in each row
