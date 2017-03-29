@@ -20,6 +20,9 @@ public class Solver {
 	private final TabledSet duplicates;
 	private final Deque<BoardNumber> search;
 	
+    private boolean isDone;
+    private boolean isUnsolvable;
+    
 	// Advanced solving 
 	private boolean isLookingAhead;
 	private BoardNumber lookAheadStart;
@@ -38,9 +41,19 @@ public class Solver {
 		// Split out the duplicate containing
 		duplicates = buildDuplicateSet();
 		search = new ArrayDeque<>(rows * cols);
+        
+        isDone = false;
 		
 		generateInitialSearchSet();
 	}
+    
+    public boolean isDone() {
+        return isDone;
+    }
+    
+    public boolean isUnsolvable() {
+        return isUnsolvable;
+    }
     
     private void findDuplicates(TabledSet duplicates, List<BoardNumber> line) {
         long map = 0;
@@ -162,10 +175,9 @@ public class Solver {
 	}
 	
 	public void step() {
-		if (board.getBoardState() == BoardState.Complete) {
-			// Done
-			return;
-		}
+		if (isDone) {
+            return;
+        }
 		
 		if (!search.isEmpty()) {
 			// Solve this one
@@ -190,14 +202,13 @@ public class Solver {
 				}
 				
 				// Engage Lookahead mode
+                // Pick a random duplicate and assume that it is present, look for conflicts
+                
 				isLookingAhead = true;
-				// Pick a start point 
 				lookAheadStart = getNextLookaheadSource();
-				// Solve for it
-				search.push(lookAheadStart);
 				lookAheadStart.setState(NumberState.LAMarked);
-				changed.add(lookAheadStart);
-				duplicates.remove(lookAheadStart);
+				
+                search.push(lookAheadStart);
 			}
 		}
 		
@@ -212,12 +223,35 @@ public class Solver {
 				break;
 			case Complete:
 				// Did it
-				restore();
-				isLookingAhead = false;
-				solve(lookAheadStart);
+                // Convert fake shaded to real shaded
+                for (BoardNumber number : changed) {
+                    if (number.getState() == NumberState.LAShaded) {
+                        number.setState(NumberState.Shaded);
+                    } else {
+                        number.setState(NumberState.Normal);
+                    }
+                }
+                
+                isDone = true;
+                isLookingAhead = false;
 				break;
 			}
-		}
+		} else {
+            switch (board.getBoardState()) {
+            case Complete:
+                isDone = true;
+                break;
+            case Incomplete:
+                if (duplicates.isEmpty()) {
+                    throw new AssertionError("Out of duplicates but not yet complete / invalid");
+                }
+                break;
+            case Invalid:
+                isDone = true;
+                isUnsolvable = true;
+                break;
+            }
+        }
 	}
 	
 	private void restore() {
