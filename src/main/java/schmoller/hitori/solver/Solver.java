@@ -164,7 +164,6 @@ public class Solver {
 	public void step() {
 		if (board.getBoardState() == BoardState.Complete) {
 			// Done
-			System.out.println("Board is done");
 			return;
 		}
 		
@@ -190,8 +189,6 @@ public class Solver {
 					unsure.add(lookAheadStart);
 				}
 				
-				System.out.println("Looking ahead");
-				
 				// Engage Lookahead mode
 				isLookingAhead = true;
 				// Pick a start point 
@@ -208,14 +205,12 @@ public class Solver {
 		if (isLookingAhead) {
 			switch (board.getBoardState()) {
 			case Invalid:
-				System.out.println("Conflict found in lookahead, shading number");
 				// Ok so its not valid, restore the board and shade it
 				restore();
 				isLookingAhead = false;
 				shade(lookAheadStart);
 				break;
 			case Complete:
-				System.out.println("Solving complete");
 				// Did it
 				restore();
 				isLookingAhead = false;
@@ -269,7 +264,6 @@ public class Solver {
 		int row = board.getRow(root);
 		int col = board.getCol(root);
 		
-		System.out.println("Removing " + root + " from duplicates");
 		duplicates.remove(root);
 		if (isLookingAhead) {
 			changed.add(root);
@@ -281,13 +275,10 @@ public class Solver {
 	}
 	
 	private boolean doesBreakContinuity(BoardNumber number) {
-		System.out.println("Testing continuity " + number);
 		FloodFill fill = new FloodFill(board, number, getNeighbours(number, false));
 		if (fill.flood()) {
-			System.out.println(number + " is ok");
 			return false;
 		} else {
-			System.out.println(number + " breaks continuity");
 			return true;
 		}
 	}
@@ -300,13 +291,11 @@ public class Solver {
 			number.setState(NumberState.Shaded);
 		}
 		duplicates.remove(number);
-		System.out.println("Shading " + number + " and removing from duplicates");
 		
 		Set<BoardNumber> neighbours = getNeighbours(number, true);
 		for (BoardNumber neighbour : neighbours) {
 			if (!search.contains(neighbour)) {
 				search.push(neighbour);
-				System.out.println("Added " + neighbour + " to queue: " + search);
 			}
 		}
 	}
