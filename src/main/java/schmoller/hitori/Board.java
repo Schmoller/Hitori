@@ -148,8 +148,8 @@ public class Board {
 		private NumberState state;
 		
 		public BoardNumber(int value, int index) {
-			if (value <= 0 || value > 9) {
-				throw new IllegalArgumentException("Valid numbers are 1 - 9");
+			if (value <= 0) {
+				throw new IllegalArgumentException("Valid numbers are 1+");
 			}
 			
 			this.value = value;

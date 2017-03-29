@@ -13,6 +13,7 @@ import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
 import schmoller.hitori.solver.Solver;
 import schmoller.hitori.NumberState;
+import schmoller.hitori.generator.Generator;
 
 public class Window {
 	@FXML
@@ -68,7 +69,14 @@ public class Window {
 			6,1,4,7,3,7,2,1,7
 		);
 		
-		numberGrid.getChildren().clear();
+		setBoard(board);
+	}
+    
+    private void setBoard(Board board) {
+        this.board = board;
+        solver = null;
+        
+        numberGrid.getChildren().clear();
 		for (int col = 0; col < board.getCols(); ++col) {
 			for (int row = 0; row < board.getRows(); ++row) {
 				BoardNumber num = board.get(row, col);
@@ -115,7 +123,7 @@ public class Window {
 				labels.put(num, label);
 			}
 		}
-	}
+    }
 	
 	private void updateNumber(BoardNumber number, Label label) {
 		label.getStyleClass().setAll("number", number.getState().name().toLowerCase());
@@ -157,6 +165,7 @@ public class Window {
 	
 	@FXML
 	private void handleGenerate(ActionEvent event) {
-		System.out.println("Generate");
+        Generator gen = new Generator(9);
+        setBoard(gen.generate());
 	}
 }
