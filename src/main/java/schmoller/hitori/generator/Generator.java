@@ -270,14 +270,77 @@ public class Generator {
     private void applyDuplicates(boolean[] grid) {
         // Take the shaded cells and determine numbers that are duplicate to others
         // in the row or col
-        
-
-        // DEBUG: Make all shaded number 10
-        for (int i = 0; i < grid.length; ++i) {
-            if (grid[i]) {
-                data[i] = 10;
-            }
+        for (int r = 0; r < size; ++r) {
+        	for (int c = 0; c < size; ++c) {
+        		if (!grid[c + r * size]) {
+        			continue;
+        		}
+        		
+        		// This is a shaded cell
+        		// Find a number that will work here
+        		
+        		// Maybe we can use a mask
+        		// each bit is a number
+        		// 1 means we can use that number, 0 not
+        		// generate a mask for the row and the col
+        		// or them together
+        		// any of those numbers should be ok
+        		
+        		long mask = genRowMask(r, grid) | genColMask(c, grid);
+        		int value = randomNumber(mask);
+        		data[c + r * size] = value;
+        	}
         }
+    }
+    
+    private long genRowMask(int r, boolean[] grid) {
+    	long mask = 0;
+    	for (int c = 0; c < size; ++c) {
+    		// As long as it is not shaded
+    		if (!grid[c + r * size]) {
+    			// Can use the number
+    			mask |= (1 << data[c + r * size]);
+    		}
+    	}
+    	
+    	return mask;
+    }
+    
+    private long genColMask(int c, boolean[] grid) {
+    	long mask = 0;
+    	for (int r = 0; r < size; ++r) {
+    		// As long as it is not shaded
+    		if (!grid[c + r * size]) {
+    			// Can use the number
+    			mask |= (1 << data[c + r * size]);
+    		}
+    	}
+    	
+    	return mask;
+    }
+    
+    private int randomNumber(long mask) {
+    	// Work out how many we can choose from
+    	int choices = 0;
+    	for (int i = 1; i <= size; ++i) {
+    		if ((mask & (1 << i)) != 0) {
+    			++choices;
+    		}
+    	}
+    	
+    	int choice = random.nextInt(choices);
+    	// Find the value
+    	for (int i = 1; i <= size; ++i) {
+    		if ((mask & (1 << i)) != 0) {
+    			if (choice == 0) {
+    				return i;
+    			} else {
+    				--choice;
+    			}
+    		}
+    	}
+    	
+    	throw new AssertionError("Cannot reach here");
     }
     
     private BoardNumber[] finalizeBoard() {
