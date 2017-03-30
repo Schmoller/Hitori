@@ -9,7 +9,6 @@ import java.util.Set;
 
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
-import schmoller.hitori.Board.BoardState;
 import schmoller.hitori.NumberState;
 
 public class Solver {
@@ -174,9 +173,9 @@ public class Solver {
         }
 	}
 	
-	public void step() {
+	public boolean step() {
 		if (isDone) {
-            return;
+            return true;
         }
 		
 		if (!search.isEmpty()) {
@@ -234,13 +233,13 @@ public class Solver {
                 
                 isDone = true;
                 isLookingAhead = false;
-				break;
+                return true;
 			}
 		} else {
             switch (board.getBoardState()) {
             case Complete:
                 isDone = true;
-                break;
+                return true;
             case Incomplete:
                 if (duplicates.isEmpty()) {
                     throw new AssertionError("Out of duplicates but not yet complete / invalid");
@@ -249,10 +248,18 @@ public class Solver {
             case Invalid:
                 isDone = true;
                 isUnsolvable = true;
-                break;
+                return true;
             }
         }
+        
+        return false;
 	}
+    
+    public boolean solve() {
+        while (step());
+        
+        return (!isUnsolvable);
+    }
 	
 	private void restore() {
 		for (BoardNumber number : changed) {
