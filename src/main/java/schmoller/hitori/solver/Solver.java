@@ -9,6 +9,7 @@ import java.util.Set;
 
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
+import schmoller.hitori.Board.BoardState;
 import schmoller.hitori.NumberState;
 
 public class Solver {
@@ -29,6 +30,10 @@ public class Solver {
 	private boolean madeChanges;
     
 	public Solver(Board board) {
+		if (board.getBoardState() == BoardState.Complete) {
+			throw new IllegalArgumentException("Board is already solved");
+		}
+		
 		this.board = board;
 		rows = board.getRows();
 		cols = board.getCols();
@@ -41,9 +46,19 @@ public class Solver {
 		duplicates = buildDuplicateSet();
 		search = new ArrayDeque<>(rows * cols);
         
-        state = SolveState.Unsolved;
+		if (duplicates.isEmpty()) {
+			state = SolveState.Invalid;
+		} else {
+			state = SolveState.Unsolved;
+		}
 		
 		generateInitialSearchSet();
+	}
+	
+	public void abort() {
+		if (isLookingAhead) {
+			restore();
+		}
 	}
     
     public SolveState getState() {
@@ -54,26 +69,30 @@ public class Solver {
         long map = 0;
         
         for (int i = 0; i < line.size(); ++i) {
-				BoardNumber compareBase = line.get(i);
+			BoardNumber compareBase = line.get(i);
+			
+			if (compareBase.getState() == NumberState.Shaded) {
+				continue;
+			}
+			
+			// Look at the rest of the line
+			for (int j = i + 1; j < line.size(); ++j) {
+				// Check if this has been visited before
+				if ((map & (1 << j)) != 0) {
+					continue;
+				}
 				
-				// Look at the rest of the line
-				for (int j = i + 1; j < line.size(); ++j) {
-					// Check if this has been visited before
-					if ((map & (1 << j)) != 0) {
-						continue;
-					}
-					
-					BoardNumber number = line.get(j);
-					// Check for duplicate
-					if (number.getValue() == compareBase.getValue()) {
-						// Its a duplicate
-						// Mark visited
-						map |= (1 << j);
-						duplicates.add(compareBase);
-						duplicates.add(number);
-					}
+				BoardNumber number = line.get(j);
+				// Check for duplicate
+				if (number.getState() != NumberState.Shaded && number.getValue() == compareBase.getValue()) {
+					// Its a duplicate
+					// Mark visited
+					map |= (1 << j);
+					duplicates.add(compareBase);
+					duplicates.add(number);
 				}
 			}
+		}
     }
 	
 	private TabledSet buildDuplicateSet() {

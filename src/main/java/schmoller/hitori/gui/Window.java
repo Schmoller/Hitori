@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import schmoller.hitori.Board;
+import schmoller.hitori.Board.BoardState;
 import schmoller.hitori.solver.Solver;
 import schmoller.hitori.generator.Generator;
 
@@ -68,7 +69,7 @@ public class Window {
         numberGrid.setCenter(display);
         
         display.setOnNumberStateChange(() -> {
-        	solver = null;
+        	clearSolver();
         	updateBoardState();
         });
     }
@@ -105,11 +106,23 @@ public class Window {
     	}
 	}
     
+    private void clearSolver() {
+		if (solver != null) {
+			solver.abort();
+			solver = null;
+			display.refreshNumbers();
+		}
+	}
+    
     @FXML
 	private void handleSolve(ActionEvent event) {
-        this.solver = null;
+    	if (board.getBoardState() == BoardState.Complete) {
+    		return;
+    	}
+    	
+        clearSolver();
         
-        Solver solver = new Solver(board);
+        solver = new Solver(board);
         solver.solve();
         
         updateBoardState();
@@ -118,6 +131,10 @@ public class Window {
     
 	@FXML
 	private void handleSolveStep(ActionEvent event) {
+		if (board.getBoardState() == BoardState.Complete) {
+    		return;
+    	}
+    	
 		if (solver == null) {
 			solver = new Solver(board);
 		} else {
