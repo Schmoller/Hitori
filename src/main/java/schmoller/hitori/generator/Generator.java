@@ -267,6 +267,207 @@ public class Generator {
         }
     }
     
+    private boolean canReachNeighbours(boolean[] grid, int start) {
+    	boolean[] visited = Arrays.copyOf(grid, grid.length);
+    	
+    	visited[start] = true;
+    	
+    	// Neighbour indices
+    	int left = index(start, 0, -1);
+    	int right = index(start, 0, 1);
+    	int up = index(start, -1, 0);   	
+    	int down = index(start, 1, 0);
+     	
+    	Deque<Integer> search = new ArrayDeque<>();
+    	if (left >= 0) {
+    		search.add(left);
+    	} else if (right >= 0) {
+    		search.add(right);
+    	} else if (up >= 0) {
+    		search.add(up);
+    	} else if (down >= 0) {
+    		search.add(down);
+    	}
+    	
+    	// Flood
+    	while(!search.isEmpty()) {
+            int index = search.pop();
+            visited[index] = true;
+
+            // Left
+            int next = index(index, 0, -1);
+            if (next >= 0 && !visited[next] && !grid[next]) {
+                search.add(next);
+            }
+            
+            // Right
+            next = index(index, 0, 1);
+            if (next >= 0 && !visited[next] && !grid[next]) {
+                search.add(next);
+            }
+            
+            // Up
+            next = index(index, -1, 0);
+            if (next >= 0 && !visited[next] && !grid[next]) {
+                search.add(next);
+            }
+            
+            // Down
+            next = index(index, 1, 0);
+            if (next >= 0 && !visited[next] && !grid[next]) {
+                search.add(next);
+            }
+        }
+    	
+    	// Debug output
+        for (int row = 0; row < size; ++row) {
+            for (int c = 0; c < size; ++c) {
+            	int index = c + row * size;
+            	if (index == start) {
+            		System.out.println("*");
+            	} else {
+	                if (visited[c + row * size]) {
+	                    System.out.print(" ");
+	                } else {
+	                    System.out.print("#");
+	                }
+            	}
+            }
+            System.out.println();
+        }
+    	
+    	// Check all are visited
+    	if (left >= 0 && !visited[left]) {
+    		return false;
+    	}
+    	
+    	if (right >= 0 && !visited[right]) {
+    		return false;
+    	}
+    	
+    	if (up >= 0 && !visited[up]) {
+    		return false;
+    	}
+    	
+    	if (down >= 0 && !visited[down]) {
+    		return false;
+    	}
+    	
+    	return true;
+    }
+    
+    private void makeUnique(boolean[] grid) {
+    	// Randomly fill up empty spaces with shaded blocks
+    	// The space cannot have a shaded block adjacent to it
+    	// and must not cut off the grid
+    	
+    	System.out.println("Ensuring unique solution");
+    	List<Integer> potentials = new ArrayList<>();
+    	for (int i = 0; i < grid.length; ++i) {
+    		if (grid[i]) {
+    			continue;
+    		}
+    		
+    		// Left
+            int next = index(i, 0, -1);
+            if (next >= 0 && grid[next]) {
+            	continue;
+            }
+            
+            // Right
+            next = index(i, 0, 1);
+            if (next >= 0 && grid[next]) {
+            	continue;
+            }
+            
+            // Up
+            next = index(i, -1, 0);
+            if (next >= 0 && grid[next]) {
+            	continue;
+            }
+            
+            // Down
+            next = index(i, 1, 0);
+            if (next >= 0 && grid[next]) {
+            	continue;
+            }
+            
+        	System.out.println("Look at " + (i / size) + "," + (i % size));
+        	potentials.add(i);
+    	}
+    	
+    	// Fill in the gaps
+    	while (!potentials.isEmpty()) {
+    		int arrayIndex = random.nextInt(potentials.size());
+    		int index = potentials.remove(arrayIndex);
+    		
+    		System.out.println("Check " + (index / size) + "," + (index % size));
+    		
+    		// Check for neighbours
+    		boolean ok = true;
+    		// Left
+            int next = index(index, 0, -1);
+            if (next >= 0 && grid[next]) {
+            	ok = false;
+            }
+            
+            // Right
+            next = index(index, 0, 1);
+            if (next >= 0 && grid[next]) {
+            	ok = false;
+            }
+            
+            // Up
+            next = index(index, -1, 0);
+            if (next >= 0 && grid[next]) {
+            	ok = false;
+            }
+            
+            // Down
+            next = index(index, 1, 0);
+            if (next >= 0 && grid[next]) {
+            	ok = false;
+            }
+            
+            if (!ok) {
+            	// Shaded block adjacent
+            	System.out.println("Discard " + (index / size) + "," + (index % size));
+            	continue;
+            }
+            
+            // Check cutoff
+            if (canReachNeighbours(grid, index)) {
+            	// Shade it
+            	grid[index] = true;
+            	System.out.println("Shade " + (index / size) + "," + (index % size));
+
+            	// Debug output
+                for (int row = 0; row < size; ++row) {
+                    for (int c = 0; c < size; ++c) {
+                        if (grid[c + row * size]) {
+                            System.out.print("#");
+                        } else {
+                            System.out.print(".");
+                        }
+                    }
+                    System.out.println();
+                }
+            }
+    	}
+    	
+    	// Debug output
+        for (int row = 0; row < size; ++row) {
+            for (int c = 0; c < size; ++c) {
+                if (grid[c + row * size]) {
+                    System.out.print("#");
+                } else {
+                    System.out.print(".");
+                }
+            }
+            System.out.println();
+        }
+    }
+    
     private void applyDuplicates(boolean[] grid) {
         // Take the shaded cells and determine numbers that are duplicate to others
         // in the row or col
@@ -357,6 +558,7 @@ public class Generator {
         
         boolean[] shadeMap = randomShade(40);
         makeContinuous(shadeMap);
+        makeUnique(shadeMap);
         applyDuplicates(shadeMap);
         
         return new Board(size, size, finalizeBoard());
