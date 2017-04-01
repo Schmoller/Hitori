@@ -1,37 +1,26 @@
 package schmoller.hitori.gui;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.BorderPane;
 import schmoller.hitori.Board;
-import schmoller.hitori.Board.BoardNumber;
 import schmoller.hitori.solver.Solver;
-import schmoller.hitori.NumberState;
 import schmoller.hitori.generator.Generator;
 
 public class Window {
 	@FXML
-	private GridPane numberGrid;
+	private BorderPane numberGrid;
 	@FXML
 	private Label solvedOutput;
 	
 	private Board board;
 	private Solver solver;
-	
-	private Map<BoardNumber, Label> labels;
-	
-	public Window() {
-		labels = new HashMap<>();
-	}
+	private BoardDisplay display;
 	
 	@FXML
 	private void initialize() {
+		Board board;
 //		// Easy 1
 //		board = Board.from(9, 9,
 //			1,8,2,4,3,9,4,1,5,
@@ -75,92 +64,68 @@ public class Window {
     private void setBoard(Board board) {
         this.board = board;
         solver = null;
+        display = new BoardDisplay(board);
+        numberGrid.setCenter(display);
         
-        numberGrid.getChildren().clear();
-		for (int col = 0; col < board.getCols(); ++col) {
-			for (int row = 0; row < board.getRows(); ++row) {
-				BoardNumber num = board.get(row, col);
-				Label label = new Label(String.valueOf(num.getValue()));
-				label.setMaxSize(1000, 1000);
-				label.setAlignment(Pos.CENTER);
-				label.getStyleClass().add("number");
-				updateNumber(num, label);
-				
-				label.setOnMouseClicked((e) -> {
-					if (e.getButton() == MouseButton.PRIMARY) {
-						switch (num.getState()) {
-						case Marked:
-							num.setState(NumberState.Normal);
-							break;
-						default:
-						case Normal:
-							num.setState(NumberState.Shaded);
-							break;
-						case Shaded:
-							num.setState(NumberState.Marked);
-							break;
-						}
-					} else if (e.getButton() == MouseButton.SECONDARY) {
-						num.setState(NumberState.Normal);
-					}
-					
-					updateNumber(num, label);
-					
-					switch (board.getBoardState()) {
-					case Complete:
-						solvedOutput.setText("YES!");
-						break;
-					case Incomplete:
-						solvedOutput.setText("No");
-						break;
-					case Invalid:
-						solvedOutput.setText("Invalid");
-						break;
-					}
-				});
-				
-				numberGrid.add(label, col, row);
-				labels.put(num, label);
-			}
-		}
+        display.setOnNumberStateChange(() -> {
+        	solver = null;
+        	updateBoardState();
+        });
     }
 	
-	private void updateNumber(BoardNumber number, Label label) {
-		label.getStyleClass().setAll("number", number.getState().name().toLowerCase());
-	}
-	
-	private void updateAll() {
-		for (int col = 0; col < board.getCols(); ++col) {
-			for (int row = 0; row < board.getRows(); ++row) {
-				BoardNumber num = board.get(row, col);
-				Label label = labels.get(num);
-				updateNumber(num, label);
+    private void updateBoardState() {
+    	if (solver == null) {
+	    	switch (board.getBoardState()) {
+			case Complete:
+				solvedOutput.setText("Solved");
+				break;
+			case Incomplete:
+				solvedOutput.setText("Incomplete");
+				break;
+			case Invalid:
+				solvedOutput.setText("Invalid");
+				break;
 			}
-		}
-		
-		switch (board.getBoardState()) {
-		case Complete:
-			solvedOutput.setText("YES!");
-			break;
-		case Incomplete:
-			solvedOutput.setText("No");
-			break;
-		case Invalid:
-			solvedOutput.setText("Invalid");
-			break;
-		}
+    	} else {
+            switch (solver.getState()) {
+            case Solved:
+                solvedOutput.setText("Solved");
+                break;
+            case Invalid:
+                solvedOutput.setText("Invalid");
+                break;
+            case NotUnique:
+                solvedOutput.setText("Not Unique");
+                break;
+            default:
+            case Unsolved:
+                solvedOutput.setText("Unsolved");
+                break;
+            }
+    	}
 	}
-	
-	
-	@FXML
+    
+    @FXML
 	private void handleSolve(ActionEvent event) {
+        this.solver = null;
+        
+        Solver solver = new Solver(board);
+        solver.solve();
+        
+        updateBoardState();
+        display.refreshNumbers();
+    }
+    
+	@FXML
+	private void handleSolveStep(ActionEvent event) {
 		if (solver == null) {
 			solver = new Solver(board);
 		} else {
 			solver.step();
 		}
 		
-		updateAll();
+		updateBoardState();
+		display.refreshNumbers();
 	}
 	
 	@FXML

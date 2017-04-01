@@ -19,15 +19,15 @@ public class Solver {
 	private final TabledSet duplicates;
 	private final Deque<BoardNumber> search;
 	
-    private boolean isDone;
-    private boolean isUnsolvable;
+    private SolveState state;
     
 	// Advanced solving 
 	private boolean isLookingAhead;
 	private BoardNumber lookAheadStart;
 	private final Set<BoardNumber> unsure; // Numbers where it did a forward search but got an inconclusive result (board not complete and not conflics)
 	private final Set<BoardNumber> changed; // The numbers that have been changed in this lookahead
-	
+	private boolean madeChanges;
+    
 	public Solver(Board board) {
 		this.board = board;
 		rows = board.getRows();
@@ -41,17 +41,13 @@ public class Solver {
 		duplicates = buildDuplicateSet();
 		search = new ArrayDeque<>(rows * cols);
         
-        isDone = false;
+        state = SolveState.Unsolved;
 		
 		generateInitialSearchSet();
 	}
     
-    public boolean isDone() {
-        return isDone;
-    }
-    
-    public boolean isUnsolvable() {
-        return isUnsolvable;
+    public SolveState getState() {
+        return state;
     }
     
     private void findDuplicates(TabledSet duplicates, List<BoardNumber> line) {
@@ -173,9 +169,9 @@ public class Solver {
         }
 	}
 	
-	public boolean step() {
-		if (isDone) {
-            return true;
+	public SolveState step() {
+		if (state != SolveState.Unsolved) {
+            return state;
         }
 		
 		if (!search.isEmpty()) {
@@ -202,9 +198,13 @@ public class Solver {
 				
 				// Engage Lookahead mode
                 // Pick a random duplicate and assume that it is present, look for conflicts
-                
 				isLookingAhead = true;
 				lookAheadStart = getNextLookaheadSource();
+                if (lookAheadStart == null) {
+                    // More searching will gain nothing
+                    state = SolveState.NotUnique;
+                    return state;
+                }
 				lookAheadStart.setState(NumberState.LAMarked);
 				
                 search.push(lookAheadStart);
@@ -219,6 +219,7 @@ public class Solver {
 				restore();
 				isLookingAhead = false;
 				shade(lookAheadStart);
+                madeChanges = true;
 				break;
 			case Complete:
 				// Did it
@@ -231,34 +232,32 @@ public class Solver {
                     }
                 }
                 
-                isDone = true;
-                isLookingAhead = false;
-                return true;
+                state = SolveState.Solved;
+                return state;
 			}
 		} else {
             switch (board.getBoardState()) {
             case Complete:
-                isDone = true;
-                return true;
+                state = SolveState.Solved;
+                return state;
             case Incomplete:
                 if (duplicates.isEmpty()) {
                     throw new AssertionError("Out of duplicates but not yet complete / invalid");
                 }
                 break;
             case Invalid:
-                isDone = true;
-                isUnsolvable = true;
-                return true;
+                state = SolveState.Invalid;
+                return state;
             }
         }
         
-        return false;
+        return SolveState.Unsolved;
 	}
     
-    public boolean solve() {
-        while (step());
+    public SolveState solve() {
+        while (step() == SolveState.Unsolved);
         
-        return (!isUnsolvable);
+        return state;
     }
 	
 	private void restore() {
@@ -282,9 +281,16 @@ public class Solver {
 			return duplicate;
 		}
 		
-		// We have exhausted all duplicates
+		if (!madeChanges) {
+            // Nothing was changed since the last time through all duplicates
+            // Therefor, the board is not solvable
+            return null;
+        }
+        
+        // We have exhausted all duplicates
 		// Erase the unsure as we must have found something by now
 		unsure.clear();
+        madeChanges = false;
 		return getNextLookaheadSource();
 	}
     
