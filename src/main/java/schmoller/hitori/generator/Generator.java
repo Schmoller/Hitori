@@ -21,7 +21,10 @@ public class Generator {
         assert (size > 2);
         
         this.size = size;
-        random = new Random();
+        long seed = System.currentTimeMillis();
+        //long seed = 1491057617936L;
+        System.out.println("Seed: " + seed);
+        random = new Random(seed);
         data = new int[size*size];
     }
     
@@ -30,7 +33,7 @@ public class Generator {
         for (int r = 0; r < size; ++r) {
             for (int c = 0; c < size; ++c) {
                 int id = c + r * size;
-                data[id] = (c + r) % 9 + 1;
+                data[id] = (c + r) % size + 1;
             }
         }
         
@@ -139,17 +142,13 @@ public class Generator {
         	// Cant do horizontal
         	isHorizontal = false;
         }
-        
-        System.out.println("Remove shaded " + r + "," + c);
-        
+
     	if (isHorizontal) {
     		// Horizontal
     		grid[index(root, 0, dc)] = false;
-    		System.out.println("Removed " + index(root, 0, dc));
     	} else {
     		// Vertical
     		grid[index(root, dr, 0)] = false;
-    		System.out.println("Removed " + index(root, dr, 0));
     	}
     }
     
@@ -167,7 +166,6 @@ public class Generator {
             for (int i = 0; i < grid.length; ++i) {
                 if (!grid[i]) {
                     search.add(i);
-                    System.out.println("Using " + i + " as the initial flood point");
                     break;
                 }
             }
@@ -201,25 +199,11 @@ public class Generator {
                 }
             }
             
-            // Debug output
-            for (int row = 0; row < size; ++row) {
-                for (int c = 0; c < size; ++c) {
-                    if (grid[c + row * size]) {
-                        System.out.print("#");
-                    } else {
-                        System.out.print((visited[c + row * size] ? "." : " "));
-                    }
-                }
-                System.out.println();
-            }
-
             canReachAll = true;
             // See if we missed any
             for (int i = 0; i < visited.length; ++i) {
                 if (!visited[i]) {
                     canReachAll = false;
-                    System.out.println("Missed " + (i % size) + " " + (i / size));
-
                     // Now find a shaded thing we can remove to connect them
                     // There should be a visited area on the diagonal, that is not a shaded block
                     boolean done = false;
@@ -228,7 +212,6 @@ public class Generator {
                     if (next >= 0 && visited[next] && !grid[next]) {
                     	removeShaded(i, -1, -1, grid);
                         done = true;
-                        System.out.println("Remove " + index(i, -1, 0));
                     }
                     
                     // Search top right
@@ -236,7 +219,6 @@ public class Generator {
                     if (next >= 0 && visited[next] && !grid[next]) {
                     	removeShaded(i, -1, 1, grid);
                         done = true;
-                        System.out.println("Remove " + index(i, -1, 0));
                     }
 
                     // Search bottom left
@@ -244,7 +226,6 @@ public class Generator {
                     if (next >= 0 && visited[next] && !grid[next]) {
                     	removeShaded(i, 1, -1, grid);
                         done = true;
-                        System.out.println("Remove " + index(i, 1, 0));
                     }
 
                     // Search bottom right
@@ -252,11 +233,9 @@ public class Generator {
                     if (next >= 0 && visited[next] && !grid[next]) {
                     	removeShaded(i, 1, 1, grid);
                         done = true;
-                        System.out.println("Remove " + index(i, 1, 0));
                     }
                     
                     if (done) {
-                        System.out.println("Removed one shaded");
                         break;
                     }
                 }
@@ -319,23 +298,6 @@ public class Generator {
             }
         }
     	
-    	// Debug output
-        for (int row = 0; row < size; ++row) {
-            for (int c = 0; c < size; ++c) {
-            	int index = c + row * size;
-            	if (index == start) {
-            		System.out.println("*");
-            	} else {
-	                if (visited[c + row * size]) {
-	                    System.out.print(" ");
-	                } else {
-	                    System.out.print("#");
-	                }
-            	}
-            }
-            System.out.println();
-        }
-    	
     	// Check all are visited
     	if (left >= 0 && !visited[left]) {
     		return false;
@@ -360,8 +322,7 @@ public class Generator {
     	// Randomly fill up empty spaces with shaded blocks
     	// The space cannot have a shaded block adjacent to it
     	// and must not cut off the grid
-    	
-    	System.out.println("Ensuring unique solution");
+
     	List<Integer> potentials = new ArrayList<>();
     	for (int i = 0; i < grid.length; ++i) {
     		if (grid[i]) {
@@ -391,8 +352,7 @@ public class Generator {
             if (next >= 0 && grid[next]) {
             	continue;
             }
-            
-        	System.out.println("Look at " + (i / size) + "," + (i % size));
+
         	potentials.add(i);
     	}
     	
@@ -400,8 +360,6 @@ public class Generator {
     	while (!potentials.isEmpty()) {
     		int arrayIndex = random.nextInt(potentials.size());
     		int index = potentials.remove(arrayIndex);
-    		
-    		System.out.println("Check " + (index / size) + "," + (index % size));
     		
     		// Check for neighbours
     		boolean ok = true;
@@ -431,7 +389,6 @@ public class Generator {
             
             if (!ok) {
             	// Shaded block adjacent
-            	System.out.println("Discard " + (index / size) + "," + (index % size));
             	continue;
             }
             
@@ -439,22 +396,13 @@ public class Generator {
             if (canReachNeighbours(grid, index)) {
             	// Shade it
             	grid[index] = true;
-            	System.out.println("Shade " + (index / size) + "," + (index % size));
-
-            	// Debug output
-                for (int row = 0; row < size; ++row) {
-                    for (int c = 0; c < size; ++c) {
-                        if (grid[c + row * size]) {
-                            System.out.print("#");
-                        } else {
-                            System.out.print(".");
-                        }
-                    }
-                    System.out.println();
-                }
             }
     	}
-    	
+    }
+    
+    private void applyDuplicates(boolean[] grid) {
+    	System.out.println("Converting shade map into duplicates");
+    	System.out.println("Input:");
     	// Debug output
         for (int row = 0; row < size; ++row) {
             for (int c = 0; c < size; ++c) {
@@ -466,9 +414,19 @@ public class Generator {
             }
             System.out.println();
         }
-    }
-    
-    private void applyDuplicates(boolean[] grid) {
+        
+    	// Debug output
+        for (int row = 0; row < size; ++row) {
+            for (int c = 0; c < size; ++c) {
+            	if (grid[c + row * size]) {
+            		System.out.print(" ");
+            	} else {
+            		System.out.print(data[c + row * size]);
+            	}
+            }
+            System.out.println();
+        }
+    	
         // Take the shaded cells and determine numbers that are duplicate to others
         // in the row or col
         for (int r = 0; r < size; ++r) {
@@ -491,6 +449,15 @@ public class Generator {
         		int value = randomNumber(mask);
         		data[c + r * size] = value;
         	}
+        }
+        
+        System.out.println("Output:");
+    	// Debug output
+        for (int row = 0; row < size; ++row) {
+            for (int c = 0; c < size; ++c) {
+            	System.out.print(data[c + row * size]);
+            }
+            System.out.println();
         }
     }
     

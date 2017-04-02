@@ -35,7 +35,7 @@ public class BoardDisplay extends GridPane {
                 BoardNumber number = board.get(r,c);
                 Region region = createItem(number);
                 numberMap.put(number, region);
-                add(region, r, c);
+                add(region, c, r);
             }
         }
     }
