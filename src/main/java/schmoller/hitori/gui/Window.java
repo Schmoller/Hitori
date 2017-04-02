@@ -14,6 +14,8 @@ public class Window {
 	private BorderPane numberGrid;
 	@FXML
 	private Label solvedOutput;
+	@FXML
+	private Label difficultyOutput;
 	
 	private Board board;
 	private Solver solver;

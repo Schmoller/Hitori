@@ -1,14 +1,11 @@
 package schmoller.hitori.generator;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.Random;
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardNumber;
 

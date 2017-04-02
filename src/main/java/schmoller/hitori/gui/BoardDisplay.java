@@ -42,7 +42,7 @@ public class BoardDisplay extends GridPane {
     
     private Region createItem(BoardNumber number) {
         Label label = new Label(String.valueOf(number.getValue()));
-        label.setPrefSize(1000, 1000); // Ensure that it fills the entire cell
+        label.setMinSize(32, 32); // Ensure that it fills the entire cell
         label.setAlignment(Pos.CENTER);
         applyStyle(number, label);
         

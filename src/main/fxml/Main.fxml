@@ -1,20 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="423.0" stylesheets="@Main.css" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="schmoller.hitori.gui.Window">
-   <children>
-      <BorderPane fx:id="numberGrid" layoutX="107.0" layoutY="14.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;" />
-      <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#handleSolveStep" prefHeight="26.0" prefWidth="85.0" text="Step" />
-      <Button layoutX="14.0" layoutY="49.0" mnemonicParsing="false" onAction="#handleSolve" prefHeight="26.0" prefWidth="85.0" text="Solve" />
-      <Button layoutX="14.0" layoutY="84.0" mnemonicParsing="false" onAction="#handleGenerate" prefHeight="26.0" prefWidth="85.0" text="Generate" />
-      <Label layoutX="14.0" layoutY="126.0" text="Solved?" />
-      <Label fx:id="solvedOutput" layoutX="14.0" layoutY="152.0" text="No" />
-   </children>
-</AnchorPane>
+<BorderPane xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="schmoller.hitori.gui.Window">
+   <left>
+      <VBox spacing="8.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button mnemonicParsing="false" onAction="#handleSolveStep" prefHeight="26.0" prefWidth="85.0" text="Step" />
+            <Button mnemonicParsing="false" onAction="#handleSolve" prefHeight="26.0" prefWidth="85.0" text="Solve" />
+            <Button mnemonicParsing="false" onAction="#handleGenerate" prefHeight="26.0" prefWidth="85.0" text="Generate" />
+            <TitledPane animated="false" collapsible="false" text="Status">
+               <content>
+                  <Label fx:id="solvedOutput" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Unsolved">
+                     <padding>
+                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                     </padding>
+                  </Label>
+               </content>
+               <VBox.margin>
+                  <Insets top="20.0" />
+               </VBox.margin>
+            </TitledPane>
+            <TitledPane animated="false" collapsible="false" text="Difficulty">
+               <content>
+                  <Label fx:id="difficultyOutput" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Unknown">
+                     <padding>
+                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                     </padding>
+                  </Label>
+               </content>
+            </TitledPane>
+         </children>
+         <padding>
+            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+         </padding>
+      </VBox>
+   </left>
+   <center>
+      <BorderPane fx:id="numberGrid" style="-fx-border-color: black;" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets left="8.0" />
+         </BorderPane.margin>
+      </BorderPane>
+   </center>
+   <padding>
+      <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+   </padding>
+</BorderPane>
