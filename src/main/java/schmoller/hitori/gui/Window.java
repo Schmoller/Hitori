@@ -6,8 +6,11 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import schmoller.hitori.Board;
 import schmoller.hitori.Board.BoardState;
+import schmoller.hitori.generator.implementations.DuplicateFiller;
 import schmoller.hitori.solver.Solver;
 import schmoller.hitori.generator.Generator;
+import schmoller.hitori.generator.implementations.RandomShader;
+import schmoller.hitori.generator.implementations.SwapPopulator;
 
 public class Window {
 	@FXML
@@ -149,7 +152,7 @@ public class Window {
 	
 	@FXML
 	private void handleGenerate(ActionEvent event) {
-        Generator gen = new Generator(9);
+        Generator gen = new Generator(9, new SwapPopulator(), new RandomShader(), new DuplicateFiller());
         setBoard(gen.generate());
 	}
 }
